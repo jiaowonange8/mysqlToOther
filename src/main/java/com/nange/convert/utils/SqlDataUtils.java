@@ -30,7 +30,7 @@ public class SqlDataUtils {
 			tablesReqult = mysqlStatement.executeQuery("Show tables");
 			while(tablesReqult.next()) {
 				String tableName = tablesReqult.getString(1);
-//				if(!"remark".equals(tableName.toLowerCase())) {
+//				if(!"callback_record_history".equals(tableName.toLowerCase())) {
 //					continue;
 //				}
 //				if(!"remark".equals(tableName.toLowerCase())&&!"upgrade_sql2".equals(tableName.toLowerCase())&&!"qys_sys_config".equals(tableName.toLowerCase())) {
@@ -66,7 +66,7 @@ public class SqlDataUtils {
 		Map<String, String> targetTableStruct = new HashMap<String, String>();
 		try {
 			for(String key :originTableStruct.keySet()) {
-				String dealCreateSql = DatabaseConvertFactory.getSqlTransfer(DatabaseType.OPENGAUSS).dealCreateSql(originTableStruct.get(key));
+				String dealCreateSql = DatabaseConvertFactory.getSqlTransfer(type).dealCreateSql(originTableStruct.get(key));
 				targetTableStruct.put(key, dealCreateSql);
 			}
 			originTableStruct = null;

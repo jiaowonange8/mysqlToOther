@@ -1,6 +1,7 @@
 package com.nange.convert.struct.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nange.constant.DatabaseType;
 
 
@@ -13,9 +14,8 @@ public class DatabaseConvertFactory {
 	
 	public static SqlTransferService getSqlTransfer(DatabaseType dbType) {
 		switch (dbType){
-//			case "kingbase":
-//			case "kingbasees":
-//				return new Transfer2Kingbase();
+			case KINGBASEES:
+				return new Transfer2Kingbase();
 			case OPENGAUSS:
 				return new Transfer2OpenGauss();
 			default:

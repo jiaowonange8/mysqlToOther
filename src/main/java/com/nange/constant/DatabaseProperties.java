@@ -10,14 +10,9 @@ public class DatabaseProperties {
 	private String password;
 	
 	
-	
-	
 	public DatabaseType getType() {
 		return type;
 	}
-
-
-
 
 	public void setType(DatabaseType type) {
 		this.type = type;
@@ -94,20 +89,6 @@ public class DatabaseProperties {
 	}
 
 
-
-
-	public static  DatabaseProperties mysqlProperties() {
-		DatabaseProperties p = new DatabaseProperties();
-		p.setType(DatabaseType.MYSQL);
-		return p;
-	}
-	
-	public static  DatabaseProperties openGaussProperties() {
-		DatabaseProperties p = new DatabaseProperties();
-		p.setType(DatabaseType.OPENGAUSS);
-		return p;
-	}
-	
 	public DatabaseProperties buildUrl(String url) {
 		this.setUrl(url);
 		return this;

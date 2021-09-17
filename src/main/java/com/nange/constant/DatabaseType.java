@@ -3,7 +3,8 @@ package com.nange.constant;
 public enum DatabaseType {
 	
 	MYSQL("jdbc:mysql://{}:{}/{}?serverTimezone=GMT%2B8&useUnicode=true&useSSL=false&characterEncoding=utf-8&allowPublicKeyRetrieval=true","com.mysql.cj.jdbc.Driver"),
-	OPENGAUSS("jdbc:postgresql://{}:{}/{}","org.postgresql.Driver");
+	OPENGAUSS("jdbc:postgresql://{}:{}/{}","org.postgresql.Driver"),
+	KINGBASEES("jdbc:kingbase8://{}:{}/{}","com.kingbase8.Driver");
 	
 	private String url;
 	private String driver;

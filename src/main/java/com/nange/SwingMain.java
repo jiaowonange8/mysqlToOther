@@ -54,7 +54,7 @@ public class SwingMain {
         fromDataLabel.setBounds(10,20,120,25);
         panel.add(fromDataLabel);
         final JComboBox<String> fromDataBox=new JComboBox<String>();
-        fromDataBox.addItem("mysql");
+        fromDataBox.addItem(DatabaseType.MYSQL.name());
         fromDataBox.setBounds(140,20,250,25);
         panel.add(fromDataBox);
         
@@ -88,6 +88,7 @@ public class SwingMain {
         panel.add(fromUsernameLabel);
         final JTextField fromUsernameField = new JTextField();
         fromUsernameField.setBounds(140,129,250,25);
+        fromUsernameField.setText("qiyuesuo");
         panel.add(fromUsernameField);
         
         JLabel fromPasswordLabel = new JLabel("源数据库库密码:");
@@ -95,6 +96,7 @@ public class SwingMain {
         panel.add(fromPasswordLabel);
         final JTextField fromPasswordField = new JTextField();
         fromPasswordField.setBounds(140,156,250,25);
+        fromPasswordField.setText("qiyuesuo");
         panel.add(fromPasswordField);
         
         JButton fromButtonTest = new JButton("test");
@@ -135,8 +137,8 @@ public class SwingMain {
         toDataLabel.setBounds(10,240,120,25);
         panel.add(toDataLabel);
         final JComboBox<String> toDataBox=new JComboBox<String>();
-//        toDataBox.addItem("--请选择--");
-        toDataBox.addItem("openGauss");
+        toDataBox.addItem(DatabaseType.OPENGAUSS.name());
+        toDataBox.addItem(DatabaseType.KINGBASEES.name());
         toDataBox.setBounds(140,240,250,25);
         panel.add(toDataBox);
         
@@ -145,7 +147,6 @@ public class SwingMain {
         panel.add(toIpLabel);
         final JTextField toIpField = new JTextField();
         toIpField.setBounds(140,268,250,25);
-        toIpField.setText("127.0.0.1");
         panel.add(toIpField);
         
         
@@ -154,7 +155,7 @@ public class SwingMain {
         panel.add(toPortLabel);
         final JTextField toPortField = new JTextField();
         toPortField.setBounds(140,295,250,25);
-        toPortField.setText("5433");
+        toPortField.setText("54321");
         panel.add(toPortField);
 
         JLabel toDatanameLabel = new JLabel("目标数据库库名:");
@@ -162,7 +163,6 @@ public class SwingMain {
         panel.add(toDatanameLabel);
         final JTextField toDatanameField = new JTextField();
         toDatanameField.setBounds(140,322,250,25);
-        toDatanameField.setText("lyntest");
         panel.add(toDatanameField);
         
         JLabel toUsernameLabel = new JLabel("目标数据库库用户名:");
@@ -265,17 +265,8 @@ public class SwingMain {
     
     private static Connection testConnection(String type,String database,String password,String port,String ip,String username) throws Exception {
     	DatabaseType databaesType = DatabaseType.valueOf(type.toUpperCase());
-    	DatabaseProperties properties = null;
-    	switch (databaesType) {
-		case MYSQL:
-			properties = DatabaseProperties.mysqlProperties();
-			break;
-		case OPENGAUSS:
-			properties = DatabaseProperties.openGaussProperties();
-			break;
-		default:
-			throw new RuntimeException("不支持的数据类型");
-		}
+    	DatabaseProperties properties = new DatabaseProperties();
+    	properties.setType(databaesType);
     	properties.buildDatabase(database)
 		.buildPassword(password)
 		.buildPort(port)
@@ -295,17 +286,8 @@ public class SwingMain {
     		}
     	}
     	DatabaseType databaesType = DatabaseType.valueOf(type.toUpperCase());
-    	DatabaseProperties properties = null;
-    	switch (databaesType) {
-		case MYSQL:
-			properties = DatabaseProperties.mysqlProperties();
-			break;
-		case OPENGAUSS:
-			properties = DatabaseProperties.openGaussProperties();
-			break;
-		default:
-			throw new RuntimeException("不支持的数据类型");
-		}
+    	DatabaseProperties properties = new DatabaseProperties();
+    	properties.setType(databaesType);
     	properties.buildDatabase(database)
 		.buildPassword(password)
 		.buildPort(port)

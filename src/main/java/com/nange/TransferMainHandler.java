@@ -1,24 +1,26 @@
 package com.nange;
 
+import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import javax.sql.DataSource;
 import javax.swing.JTextArea;
 
-import com.nange.constant.DatabaseProperties;
 import com.nange.constant.DatabaseType;
 import com.nange.convert.utils.FileUtils;
 import com.nange.convert.utils.SqlDataUtils;
 import com.nange.datasource.DatabaseExeHandler;
-import com.nange.datasource.DatabaseFactory;
 
 public class TransferMainHandler {
+	
+	public static final String SQL_LINEED_DELIMITER_PATTERN = ";[ ]*[\\r\\n]+";
 	
 	public static void transfer(JTextArea textArea,DatabaseExeHandler sourceHandler,DatabaseExeHandler targetHandler,DatabaseType type) {
 		FileUtils.writeText("data.log", " \r\n", false);
@@ -131,9 +133,16 @@ public class TransferMainHandler {
 		}
 		for(String key : targetTableStruct.keySet()) {
 			try {
-				targetStatement.execute(targetTableStruct.get(key));
+				Scanner scanner = new Scanner(new ByteArrayInputStream(targetTableStruct.get(key).getBytes()), "UTF-8");
+	            // 按;截取,依次执行
+	            scanner.useDelimiter(Pattern.compile(SQL_LINEED_DELIMITER_PATTERN));
+	            while (scanner.hasNext()) {
+	                String sql = scanner.next();
+	                targetStatement.execute(sql+";");
+	            }
+	            scanner.close();
 				writeLog(textArea, "============目标数据库表结构 "+key+" 创建完毕============"+"\r\n");
-			} catch (SQLException e) {
+			}catch (SQLException e) {
 				throw new SQLException("=============创建目标表结构  "+key+" 报错============"+e.getMessage());
 			}
 		}
