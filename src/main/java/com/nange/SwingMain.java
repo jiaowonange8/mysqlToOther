@@ -139,6 +139,10 @@ public class SwingMain {
         final JComboBox<String> toDataBox=new JComboBox<String>();
         toDataBox.addItem(DatabaseType.OPENGAUSS.name());
         toDataBox.addItem(DatabaseType.KINGBASEES.name());
+        toDataBox.addItem(DatabaseType.ORACLE.name());
+        toDataBox.addItem(DatabaseType.SQLSERVER.name());
+        toDataBox.addItem(DatabaseType.DM.name());
+        toDataBox.addItem(DatabaseType.OSCAR.name());
         toDataBox.setBounds(140,240,250,25);
         panel.add(toDataBox);
         
