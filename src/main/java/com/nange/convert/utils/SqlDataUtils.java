@@ -33,9 +33,6 @@ public class SqlDataUtils {
 //				if(!"callback_record_history".equals(tableName.toLowerCase())) {
 //					continue;
 //				}
-//				if(!"remark".equals(tableName.toLowerCase())&&!"upgrade_sql2".equals(tableName.toLowerCase())&&!"qys_sys_config".equals(tableName.toLowerCase())) {
-//					continue;
-//				}
 				Statement tableStructStatement = handler.createStatement(connect);
 				ResultSet tableStructQesult = tableStructStatement.executeQuery("SHOW CREATE TABLE "+tableName);
 				while(tableStructQesult.next()) {
