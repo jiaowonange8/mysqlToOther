@@ -1,27 +1,20 @@
-package com.nange;
-
-import java.io.ByteArrayInputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import javax.swing.JTextArea;
+package com.nange.coretransfer;
 
 import com.nange.constant.DatabaseType;
+import com.nange.convert.ColumnInfo;
+import com.nange.convert.TableInfo;
+import com.nange.convert.struct.service.Transfer2SqlServer;
 import com.nange.convert.utils.FileUtils;
 import com.nange.convert.utils.SqlDataUtils;
 import com.nange.datasource.DatabaseExeHandler;
 
-public class TransferMainHandler {
-	
-	public static final String SQL_LINEED_DELIMITER_PATTERN = ";[ ]*[\\r\\n]+";
-	
+import javax.swing.*;
+import java.io.ByteArrayInputStream;
+import java.sql.*;
+import java.util.*;
+import java.util.regex.Pattern;
+
+public class TransferMainHandler extends AbstractTransferMainHandler {
 	public static void transfer(JTextArea textArea,DatabaseExeHandler sourceHandler,DatabaseExeHandler targetHandler,DatabaseType type) {
 		FileUtils.writeText("data.log", " \r\n", false);
 		writeLog(textArea, "开始转移数据 \r\n");
@@ -35,8 +28,15 @@ public class TransferMainHandler {
 			//③ 目标数据库表结构创建
 			targetTableCreate(targetHandler,targetTableStruct,textArea);
 			writeLog(textArea, "============3：目标数据库表结构创建完毕============"+"\r\n");
+			// 获取自增表结构 map<表名，<字段名list>>
+			Map<String, List<String>> idAutoIncrementTable = new HashMap<>(16);
+			for (Map.Entry<String, String> entry : originTableStruct.entrySet()) {
+				TransferMainHandler.getIdAutoIncrementTable(entry.getValue(), idAutoIncrementTable);
+			}
 			//④ 目标数据库表数据迁移
-			targetTableDataTransfer(sourceHandler,targetHandler,textArea,targetTableStruct.keySet());
+			AbstractTransferMainHandler transferMain = getSqlTransfer(type);
+			//添加自增表名的参数，从originTableStruct过滤
+			transferMain.targetTableDataTransfer(sourceHandler,targetHandler,textArea,targetTableStruct.keySet(),idAutoIncrementTable );
 			writeLog(textArea, "============4：目标数据库表数据迁移完毕============"+"\r\n");
 		} catch (SQLException e) {
 			writeLog(textArea, e.getMessage()+"\r\n");
@@ -45,9 +45,9 @@ public class TransferMainHandler {
 		writeLog(textArea, "end: ============数据库转移完毕============"+"\r\n");
 
 	}
-	
-	private static void targetTableDataTransfer(DatabaseExeHandler sourceHandler, DatabaseExeHandler targetHandler, JTextArea textArea,
-			Set<String> keySet)  throws SQLException{
+	@Override
+	public void targetTableDataTransfer(DatabaseExeHandler sourceHandler, DatabaseExeHandler targetHandler, JTextArea textArea,
+			Set<String> keySet ,Map<String, List<String>> idAutoIncrementTable)  throws SQLException{
 		//循环所有表，查出源数据库表数据，往目标数据库迁移
 		for(String key : keySet) {
 			Connection originConnection = null;
@@ -138,7 +138,7 @@ public class TransferMainHandler {
 	            scanner.useDelimiter(Pattern.compile(SQL_LINEED_DELIMITER_PATTERN));
 	            while (scanner.hasNext()) {
 	                String sql = scanner.next();
-	                targetStatement.execute(sql+";");
+	                targetStatement.execute(sql);
 	            }
 	            scanner.close();
 				writeLog(textArea, "============目标数据库表结构 "+key+" 创建完毕============"+"\r\n");
@@ -169,12 +169,50 @@ public class TransferMainHandler {
 		}
 		return originTableStruct;
 	}
-	
-	private static void writeLog(JTextArea textArea,String log) {
-		FileUtils.writeText("data.log", log, true);
-		if(textArea!=null) {
-			textArea.append(log);
+
+	public static AbstractTransferMainHandler getSqlTransfer(DatabaseType dbType) {
+		switch (dbType){
+			case DM:
+			case SQLSERVER:
+				return new TransferMainHandlerSqlServerAndDM();
+			case ORACLE:
+				return new TransferMainHandlerOracle();
+			case OPENGAUSS:
+				return new TransferMainHandlerOpenGauss();
+			case OSCAR:
+			case KINGBASEES:
+				return new TransferMainHandler();
+			default:
+				return null;
 		}
 	}
 
+	/**
+	 * 获取主键自增的表的map集合
+	 * @param sql（建表语句）
+	 * @return map<表名，<字段名list>>
+	 */
+	private static Map<String,List<String>> getIdAutoIncrementTable(String sql,Map<String,List<String>> autoIncrementTableAndColumn){
+
+		List<String> autoIncrementTableColumns = new ArrayList<>();
+
+		TableInfo tableInfo = new Transfer2SqlServer().getTableInfo(sql);
+		String tableName = tableInfo.getTableName();
+		List<ColumnInfo> columnList = tableInfo.getColumnList();
+
+		boolean isAutoIncrementTable = false;
+		for (ColumnInfo columnInfo : columnList) {
+			String columnName = columnInfo.getName();
+			if ("id".equalsIgnoreCase(columnName) && columnInfo.isAutoIncrement()) {
+				isAutoIncrementTable = true;
+			}
+			if (isAutoIncrementTable){
+				autoIncrementTableColumns.add(columnName);
+			}
+		}
+		if (isAutoIncrementTable){
+			autoIncrementTableAndColumn.put(tableName, autoIncrementTableColumns);
+		}
+		return autoIncrementTableAndColumn;
+	}
 }

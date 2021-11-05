@@ -1,14 +1,14 @@
 package com.nange.convert.struct.service;
 
-import java.util.List;
-
+import com.nange.convert.ColumnInfo;
+import com.nange.convert.IndexInfo;
+import com.nange.convert.TableInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nange.convert.ColumnInfo;
-import com.nange.convert.IndexInfo;
-import com.nange.convert.TableInfo;
+import java.util.List;
+import java.util.Random;
 
 /**
  * mysql语句转openGuass语句处理类
@@ -36,10 +36,10 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
 
             createTableSql.append(this.dataType2OpenGuass(columnType.toLowerCase(), columnLength, defaultValue));
 
-            if (notNull && !"id".equals(columnName.toLowerCase())) {
+            if (notNull && !"id".equalsIgnoreCase(columnName)) {
                 createTableSql.append(" NOT NULL ");
             }
-            if("id".equals(columnName.toLowerCase())){
+            if("id".equalsIgnoreCase(columnName)){
                 createTableSql.append(" PRIMARY KEY ");
                 idAutoIncrement = columnInfo.isAutoIncrement();
             }
@@ -53,9 +53,6 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
             String indexTable = indexInfo.getTableName();
             String indexType = indexInfo.getType();
             String[] columnNames = indexInfo.getColumnNames();
-            if(indexName.length()>30){
-                indexName = indexName.substring(0,29);
-            }
             if("UNIQUE".equals(indexType)){
                 createTableSql.append("CREATE UNIQUE INDEX ");
             } else {
@@ -69,10 +66,10 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
             createTableSql.append(");\r\n");
         }
         if(idAutoIncrement){
-            createTableSql.append("CREATE SEQUENCE ").append(tableName).append("_SEQ START WITH 1 INCREMENT BY 1").append(";\r\n");
-//            createTableSql.append("CREATE OR REPLACE TRIGGER ").append(tableName).append("_TRG BEFORE INSERT ON ")
-//                    .append(tableName).append(" FOR EACH ROW BEGIN SELECT ")
-//                    .append(tableName).append("_SEQ.NEXTVAL INTO:NEW.ID FROM DUAL; END; ").append(";\r\n");
+            createTableSql.append("CREATE SEQUENCE ").append(tableName).append("_SEQ START WITH 1 INCREMENT BY 1").append(";\r\n")
+                    .append("CREATE SEQUENCE ").append(tableName).append("_id_seq  START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1")
+                    .append(";\r\n").append("ALTER TABLE ").append(tableName).append(" ALTER COLUMN id SET DEFAULT NEXTVAL('")
+                    .append(tableName).append("_id_seq')").append(";\r\n");
         }
         return createTableSql.toString();
     }
@@ -118,7 +115,9 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
         String indexName = indexInfo.getName();
         logger.info("开始处理OpenGuass添加索引语句:{}",indexName);
         if(indexName.length()>30){
-            indexName = indexName.substring(0,29);
+            String indexLeft = indexName.substring(0, 15);
+            Random rand = new Random();
+            indexName=indexLeft.concat(String.valueOf(rand.nextInt(1000)));
         }
         String indexType = indexInfo.getType();
         String indexTable = indexInfo.getTableName();
@@ -129,7 +128,7 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
         } else {
             addIndexSql.append("CREATE INDEX ");
         }
-        addIndexSql.append("").append(indexName).append(" ON ").append(indexTable).append("(");
+        addIndexSql.append(indexName).append(" ON ").append(indexTable).append("(");
         for (String columnName:columnNames){
             addIndexSql.append("\"").append(columnName.toUpperCase()).append("\"").append(",");
         }
@@ -190,19 +189,20 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
             case "tinyint":
             case "int":
                 columnTypeStrb.append(" NUMBER");
-                if(StringUtils.isNotBlank(defaultValue) && !defaultValue.toLowerCase().equals("null")){
+                if(StringUtils.isNotBlank(defaultValue) && !defaultValue.equalsIgnoreCase("null")){
                     columnTypeStrb.append(" DEFAULT ").append(defaultValue).append(" ");
                 }
                 break;
             case "varchar":
+            case "varbinary":
                 columnTypeStrb.append(" NVARCHAR2").append("(").append(columnLength).append(")");
-                if(StringUtils.isNotBlank(defaultValue) && !defaultValue.toLowerCase().equals("null")){
+                if(StringUtils.isNotBlank(defaultValue) && !defaultValue.equalsIgnoreCase("null")){
                     columnTypeStrb.append(" DEFAULT '").append(defaultValue).append("' ");
                 }
                 break;
             case "datetime":
                 columnTypeStrb.append(" DATE");
-                if(StringUtils.isNotBlank(defaultValue) && defaultValue.toLowerCase().indexOf("now") != -1){
+                if(StringUtils.isNotBlank(defaultValue) && defaultValue.toLowerCase().contains("now")){
                     columnTypeStrb.append(" DEFAULT CURRENT_DATE ");
                 }
                 break;
@@ -216,7 +216,7 @@ public class Transfer2OpenGauss extends SqlTransferServiceImpl {
                 columnTypeStrb.append(" NUMBER(19,5)");
                 break;
             case "blob":
-                columnTypeStrb.append(" BLOB");
+                columnTypeStrb.append(" BYTEA");
                 break;
             default:
                 logger.error("暂不支持该数据类型：{}", columnType);

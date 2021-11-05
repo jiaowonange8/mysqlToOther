@@ -1,15 +1,16 @@
 package com.nange.convert.utils;
 
+import com.nange.constant.DatabaseType;
+import com.nange.convert.struct.service.DatabaseConvertFactory;
+import com.nange.datasource.DatabaseExeHandler;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.nange.constant.DatabaseType;
-import com.nange.convert.struct.service.DatabaseConvertFactory;
-import com.nange.datasource.DatabaseExeHandler;
+import java.util.Objects;
 
 public class SqlDataUtils {
 	
@@ -59,11 +60,13 @@ public class SqlDataUtils {
 	 * @param type
 	 * @return
 	 */
-	public static Map<String, String> targetTableStruct(Map<String, String> originTableStruct,DatabaseType type) throws SQLException{
+	public static Map<String, String> targetTableStruct(Map<String, String> originTableStruct, DatabaseType type) throws SQLException{
 		Map<String, String> targetTableStruct = new HashMap<String, String>();
 		try {
-			for(String key :originTableStruct.keySet()) {
-				String dealCreateSql = DatabaseConvertFactory.getSqlTransfer(type).dealCreateSql(originTableStruct.get(key));
+			for (Map.Entry<String, String> entry : originTableStruct.entrySet()) {
+				String key = entry.getKey();
+				String value = entry.getValue();
+				String dealCreateSql = Objects.requireNonNull(DatabaseConvertFactory.getSqlTransfer(type)).dealCreateSql(value);
 				targetTableStruct.put(key, dealCreateSql);
 			}
 			originTableStruct = null;

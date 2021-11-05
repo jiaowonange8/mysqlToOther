@@ -18,6 +18,14 @@ public class DatabaseConvertFactory {
 				return new Transfer2Kingbase();
 			case OPENGAUSS:
 				return new Transfer2OpenGauss();
+			case ORACLE:
+				return new Transfer2Oracle();
+			case SQLSERVER:
+				return new Transfer2SqlServer();
+			case DM:
+				return new Transfer2DM();
+			case OSCAR:
+				return new Transfer2Oscar();
 			default:
 				logger.error("无效的数据库类型：{}", dbType);
 				return null;

@@ -1,24 +1,17 @@
 package com.nange;
 
+import com.nange.constant.DatabaseProperties;
+import com.nange.constant.DatabaseType;
+import com.nange.coretransfer.TransferMainHandler;
+import com.nange.datasource.DatabaseExeHandler;
+import com.nange.datasource.DatabaseFactory;
+
+import javax.sql.DataSource;
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import javax.sql.DataSource;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-
-import com.nange.constant.DatabaseProperties;
-import com.nange.constant.DatabaseType;
-import com.nange.datasource.DatabaseExeHandler;
-import com.nange.datasource.DatabaseFactory;
 
 public class SwingMain {
 	
